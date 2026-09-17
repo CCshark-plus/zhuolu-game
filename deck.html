@@ -2,85 +2,127 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>第三课：造一副牌</title>
+  <title>三国逐鹿 · 牌组与手牌</title>
   <style>
     body { font-family: "Microsoft YaHei", sans-serif; background: #f4f3ee; padding: 20px; }
     h1 { font-size: 22px; }
     .牌 { width: 70px; height: 100px; background: white; border: 2px solid #333;
           border-radius: 8px; font-size: 24px; font-weight: bold;
-          display: inline-flex; align-items: center; justify-content: center; margin: 6px; }
-    button { font-size: 16px; padding: 8px 20px; border-radius: 8px; border: none;
-             background: #3b7a57; color: white; cursor: pointer; }
+          display: inline-flex; align-items: center; justify-content: center; margin: 6px;
+          cursor: pointer; user-select: none; }
+    .选中 { border: 4px solid #3b7a57; }
+    button { font-size: 14px; padding: 6px 14px; border-radius: 8px; border: none;
+             background: #3b7a57; color: white; cursor: pointer; margin-right: 8px; }
     .说明 { color: #666; font-size: 14px; }
   </style>
 </head>
 <body>
-  <h1>第三课：造一副 52 张的牌</h1>
-  <p class="说明">点按钮发牌，每次发 8 张（小丑牌每轮也是 8 张手牌）</p>
+  <h1>牌组与手牌 · 三国逐鹿原型</h1>
+  <p class="说明">发 8 张手牌；可以按点数或花色排序，也可以点两张牌交换位置</p>
   <button onclick="发牌()">发牌</button>
+  <button onclick="按点数排序()">按点数排序</button>
+  <button onclick="按花色排序()">按花色排序</button>
   <p id="信息"></p>
   <div id="手牌"></div>
 
   <script>
-    // ===== 第三课：对象、数组、循环 =====
+    // ===== 这一步：数组排序 + 手动调序 =====
 
-    // 1. 对象（object）＝一个"档案袋"，里面装各种信息
-    //    一张牌 = 一个档案袋，装着：花色、点数、数值
-    // 2. 数组（array）＝一列档案袋排成的队伍
-    //    一副牌 = 52 个档案袋排成一队
+    // 全局变量：整个页面都能用的"公共储物柜"
+    let 手牌 = [];        // 当前这手牌（数组）
+    let 选中位置 = -1;    // 点中的牌在数组里的位置，-1 = 没选中
 
     // 造一副牌（52 张）
     function 造牌() {
-      let 花色们 = ["♠", "♥", "♦", "♣"];   // 数组：4 种花色
-      let 点数们 = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]; // 13 个点数
-      let 牌堆 = [];                        // 空数组，准备装 52 张牌
-
-      for (let 花色编号 = 0; 花色编号 < 花色们.length; 花色编号++) {   // 外层循环：跑 4 遍（每种花色）
-        for (let 点数编号 = 0; 点数编号 < 点数们.length; 点数编号++) { // 内层循环：每种花色跑 13 遍
+      let 花色们 = ["♠", "♥", "♦", "♣"];
+      let 点数们 = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+      let 牌堆 = [];
+      for (let 花色编号 = 0; 花色编号 < 花色们.length; 花色编号++) {
+        for (let 点数编号 = 0; 点数编号 < 点数们.length; 点数编号++) {
           let 牌 = {
-            花色: 花色们[花色编号],   // 从数组里按编号取元素
+            花色: 花色们[花色编号],
             点数: 点数们[点数编号],
-            数值: 点数编号 + 1        // A=1, 2=2, ... K=13
+            数值: 点数编号 + 1
           };
-          牌堆.push(牌);               // push = 把档案袋放进队伍末尾
+          牌堆.push(牌);
         }
       }
-      return 牌堆;                      // 把 52 张牌交出去
+      return 牌堆;
     }
 
-    // 洗牌（把数组的顺序打乱）
+    // 洗牌（把顺序打乱）
     function 洗牌(牌堆) {
       for (let i = 牌堆.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));  // 随机挑一个位置（0 到 i）
-        let 临时 = 牌堆[i];    // 交换两张牌的位置（用临时变量倒手）
+        let j = Math.floor(Math.random() * (i + 1));
+        let 临时 = 牌堆[i];
         牌堆[i] = 牌堆[j];
         牌堆[j] = 临时;
       }
       return 牌堆;
     }
 
-    // 发牌：洗牌后从顶上拿 8 张
+    // 发牌：洗牌后切出前 8 张（slice = 切一段出来）
     function 发牌() {
-      let 牌堆 = 洗牌(造牌());
-      let 手牌 = [];
-      for (let i = 0; i < 8; i++) {
-        手牌.push(牌堆[i]);
-      }
+      手牌 = 洗牌(造牌()).slice(0, 8);
+      选中位置 = -1;
+      显示手牌();
+    }
 
-      // 把手牌"画"到网页上
-      let 显示区 = document.getElementById("手牌");
+    // 把数组里的手牌"画"到网页上（每次改完数组都调用它）
+    function 显示手牌() {
       let 文字 = "";
       for (let i = 0; i < 手牌.length; i++) {
-        let 颜色 = "black";                        // 默认黑色
+        let 颜色 = "black";
         if (手牌[i].花色 === "♥" || 手牌[i].花色 === "♦") {
-          颜色 = "red";                            // 红心和方块是红色
+          颜色 = "red";
         }
-        文字 += '<div class="牌" style="color:' + 颜色 + '">' + 手牌[i].花色 + 手牌[i].点数 + '</div>';
+        let 高亮 = "";
+        if (i === 选中位置) {
+          高亮 = "选中";   // 被点中的牌加绿色边框
+        }
+        文字 += '<div class="牌 ' + 高亮 + '" style="color:' + 颜色 + '" onclick="点牌(' + i + ')">'
+             + 手牌[i].花色 + 手牌[i].点数 + '</div>';
       }
-      显示区.innerHTML = 文字;
-
+      document.getElementById("手牌").innerHTML = 文字;
       document.getElementById("信息").innerHTML =
-        "牌堆共 " + 牌堆.length + " 张（4 花色 × 13 点数 = 52），这手牌是：";
+        "手牌 " + 手牌.length + " 张 · 点一张牌再点另一张，交换位置";
+    }
+
+    // 点牌：第一次点 = 选中；点另一张 = 交换位置
+    function 点牌(位置) {
+      if (选中位置 === -1) {
+        选中位置 = 位置;              // 第一次点：记住这张
+      } else if (选中位置 === 位置) {
+        选中位置 = -1;                // 又点了同一张：取消选中
+      } else {
+        let 临时 = 手牌[选中位置];    // 交换两张牌的位置
+        手牌[选中位置] = 手牌[位置];
+        手牌[位置] = 临时;
+        选中位置 = -1;
+      }
+      显示手牌();
+    }
+
+    // 排序：数组自带 sort 方法，括号里的函数说"怎么比"
+    function 按点数排序() {
+      手牌.sort(function (甲, 乙) {
+        return 甲.数值 - 乙.数值;     // 负数 = 甲排前面，正数 = 乙排前面
+      });
+      选中位置 = -1;
+      显示手牌();
+    }
+
+    // 按花色排序：先比花色顺序，花色相同再比点数
+    let 花色顺序 = { "♠": 0, "♥": 1, "♦": 2, "♣": 3 };
+    function 按花色排序() {
+      手牌.sort(function (甲, 乙) {
+        if (花色顺序[甲.花色] !== 花色顺序[乙.花色]) {
+          return 花色顺序[甲.花色] - 花色顺序[乙.花色];
+        }
+        return 甲.数值 - 乙.数值;
+      });
+      选中位置 = -1;
+      显示手牌();
     }
 
     发牌();   // 页面一打开就先发一次
