@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>第三课：造一副牌</title>
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; background: #f4f3ee; padding: 20px; }
+    h1 { font-size: 22px; }
+    .牌 { width: 70px; height: 100px; background: white; border: 2px solid #333;
+          border-radius: 8px; font-size: 24px; font-weight: bold;
+          display: inline-flex; align-items: center; justify-content: center; margin: 6px; }
+    button { font-size: 16px; padding: 8px 20px; border-radius: 8px; border: none;
+             background: #3b7a57; color: white; cursor: pointer; }
+    .说明 { color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>第三课：造一副 52 张的牌</h1>
+  <p class="说明">点按钮发牌，每次发 8 张（小丑牌每轮也是 8 张手牌）</p>
+  <button onclick="发牌()">发牌</button>
+  <p id="信息"></p>
+  <div id="手牌"></div>
+
+  <script>
+    // ===== 第三课：对象、数组、循环 =====
+
+    // 1. 对象（object）＝一个"档案袋"，里面装各种信息
+    //    一张牌 = 一个档案袋，装着：花色、点数、数值
+    // 2. 数组（array）＝一列档案袋排成的队伍
+    //    一副牌 = 52 个档案袋排成一队
+
+    // 造一副牌（52 张）
+    function 造牌() {
+      let 花色们 = ["♠", "♥", "♦", "♣"];   // 数组：4 种花色
+      let 点数们 = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]; // 13 个点数
+      let 牌堆 = [];                        // 空数组，准备装 52 张牌
+
+      for (let 花色编号 = 0; 花色编号 < 花色们.length; 花色编号++) {   // 外层循环：跑 4 遍（每种花色）
+        for (let 点数编号 = 0; 点数编号 < 点数们.length; 点数编号++) { // 内层循环：每种花色跑 13 遍
+          let 牌 = {
+            花色: 花色们[花色编号],   // 从数组里按编号取元素
+            点数: 点数们[点数编号],
+            数值: 点数编号 + 1        // A=1, 2=2, ... K=13
+          };
+          牌堆.push(牌);               // push = 把档案袋放进队伍末尾
+        }
+      }
+      return 牌堆;                      // 把 52 张牌交出去
+    }
+
+    // 洗牌（把数组的顺序打乱）
+    function 洗牌(牌堆) {
+      for (let i = 牌堆.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));  // 随机挑一个位置（0 到 i）
+        let 临时 = 牌堆[i];    // 交换两张牌的位置（用临时变量倒手）
+        牌堆[i] = 牌堆[j];
+        牌堆[j] = 临时;
+      }
+      return 牌堆;
+    }
+
+    // 发牌：洗牌后从顶上拿 8 张
+    function 发牌() {
+      let 牌堆 = 洗牌(造牌());
+      let 手牌 = [];
+      for (let i = 0; i < 8; i++) {
+        手牌.push(牌堆[i]);
+      }
+
+      // 把手牌"画"到网页上
+      let 显示区 = document.getElementById("手牌");
+      let 文字 = "";
+      for (let i = 0; i < 手牌.length; i++) {
+        let 颜色 = "black";                        // 默认黑色
+        if (手牌[i].花色 === "♥" || 手牌[i].花色 === "♦") {
+          颜色 = "red";                            // 红心和方块是红色
+        }
+        文字 += '<div class="牌" style="color:' + 颜色 + '">' + 手牌[i].花色 + 手牌[i].点数 + '</div>';
+      }
+      显示区.innerHTML = 文字;
+
+      document.getElementById("信息").innerHTML =
+        "牌堆共 " + 牌堆.length + " 张（4 花色 × 13 点数 = 52），这手牌是：";
+    }
+
+    发牌();   // 页面一打开就先发一次
+  </script>
+</body>
+</html>
