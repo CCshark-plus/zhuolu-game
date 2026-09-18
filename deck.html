@@ -38,8 +38,9 @@
               padding: 18px; z-index: 101; width: 92%; max-width: 720px;
               max-height: 85vh; overflow-y: auto; }
     .商店牌 { width: 160px; min-height: 110px; background: #fbfaf6; border: 2px solid #999;
-              border-radius: 10px; padding: 10px; display: inline-block; vertical-align: top;
-              margin: 6px; font-size: 13px; }
+              border-radius: 10px; padding: 10px; margin: 6px; font-size: 13px;
+              box-sizing: border-box; }
+    .商店牌行 { display: flex; flex-wrap: wrap; gap: 4px; }
     table { border-collapse: collapse; font-size: 13px; }
     td, th { border: 1px solid #ccc; padding: 3px 10px; }
   </style>
@@ -516,15 +517,17 @@
       let 遮罩 = document.getElementById("商店遮罩");
       if (!商店开着) { 遮罩.style.display = "none"; return; }
       let 区 = document.getElementById("商店区");
-      let 文字 = '<div class="商店"><b>招兵买马</b> · 粮草 <span id="商店粮草">' + 粮草 + '</span>'
-           + ' · <button onclick="刷新商店()">刷新货架（' + 刷新费用 + ' 粮草，刘备少花 1）</button>';
+      let 文字 = '<div class="商店">'
+           + '<div style="margin-bottom: 8px;"><b>招兵买马</b> · 粮草 <span id="商店粮草">' + 粮草 + '</span>'
+           + ' · <button onclick="刷新商店()">刷新货架（' + 刷新费用 + ' 粮草，刘备少花 1）</button></div>'
+           + '<div class="商店牌行">';
       for (let i = 0; i < 商店武将们.length; i++) {
         let 武将 = 商店武将们[i];
         文字 += '<div class="商店牌 ' + 武将.稀有度 + '"><div class="武将名">' + 武将.名字 + '</div>'
              + '<div>' + 武将.稀有度 + ' · ' + 武将.阵营 + '</div><div>' + 武将.说明 + '</div>'
              + '<div style="margin-top: 6px;"><button onclick="购买武将(' + i + ')">招募（' + 武将.价格 + ' 粮草）</button></div></div>';
       }
-      文字 += '<div style="margin-top: 10px;"><button onclick="继续出征()">'
+      文字 += '</div><div style="margin-top: 10px;"><button onclick="继续出征()">'
            + (破城 ? "再来一局" : "整备完毕，继续出征") + '</button></div></div>';
       区.innerHTML = 文字;
       遮罩.style.display = "block";
