@@ -51,11 +51,13 @@
   <div class="面板">
     将领 <span id="将领"></span> ·
     粮草 <span id="粮草"></span> ·
+    第 <span id="城号"></span> 城「<span id="城名"></span>」·
     第 <span id="关号"></span> 关（<span id="关名"></span>）·
     目标 <span id="目标"></span> ·
     累计 <span id="累计"></span> ·
     出牌 <span id="出牌次数"></span>/<span id="出牌上限"></span> ·
-    弃牌 <span id="弃牌次数"></span>/<span id="弃牌上限"></span>
+    弃牌 <span id="弃牌次数"></span>/<span id="弃牌上限"></span> ·
+    功勋 <span id="功勋"></span>
   </div>
   <div class="进度外"><div class="进度内" id="进度条"></div></div>
   <div class="状态" id="状态"></div>
@@ -75,6 +77,12 @@
   <div class="遮罩" id="商店遮罩" style="display:none;">
     <div class="商店窗" id="商店区"></div>
   </div>
+  <div class="遮罩" id="结算遮罩" style="display:none;">
+    <div class="商店窗" id="结算区"></div>
+  </div>
+  <div class="遮罩" id="大厅遮罩" style="display:none;">
+    <div class="商店窗" id="大厅区"></div>
+  </div>
 
   <p id="信息" class="说明"></p>
 
@@ -87,7 +95,18 @@
     // ==================== 调参区 ====================
     // 想调难度/手感/经济，只改这一块，下面的代码不用看也不用动
 
-    let 每关目标战力 = [300, 450, 600];   // 第一城三关：先锋 / 守将 / 城主
+    // 八城逐鹿：刘备从涿郡一路打回益州，每城三关（先锋 / 守将 / 城主）
+    // 城主 = Boss 关：目标最高，且本关出牌次数 -1
+    let 城池表 = [
+      { 名: "涿郡", 目标: [300, 450, 600] },
+      { 名: "平原", 目标: [430, 650, 900] },
+      { 名: "徐州", 目标: [630, 950, 1300] },
+      { 名: "小沛", 目标: [900, 1350, 1900] },
+      { 名: "汝南", 目标: [1300, 1950, 2700] },
+      { 名: "新野", 目标: [1900, 2800, 4000] },
+      { 名: "荆州", 目标: [2700, 4000, 5600] },
+      { 名: "益州", 目标: [3800, 5600, 7800] }
+    ];
     let 关名们 = ["先锋", "守将", "城主"];
     let 每局出牌次数 = 4;                  // 每关出牌上限
     let 每局弃牌次数 = 3;                  // 每关弃牌上限
@@ -100,6 +119,14 @@
     let 武将位数 = 4;                      // 同时能带几个武将
     let 商店武将数 = 2;                    // 商店同时亮几员武将（小丑牌是 2 个小丑）
     let 起始粮草 = 4;
+
+    // 功勋商店（打完一局按战果结算功勋，用来买"对局外选项"——只买选项，不直接买数值，防止数值膨胀）
+    let 升级表 = [
+      { 键: "屯田", 名: "屯田养兵", 说明: "开局粮草 +2", 价格: 8 },
+      { 键: "增援", 名: "后方增援", 说明: "每关出牌次数 +1", 价格: 12 },
+      { 键: "权谋", 名: "运筹帷幄", 说明: "商店刷新费 -1", 价格: 15 },
+      { 键: "求贤", 名: "求贤若渴", 说明: "武将位 +1", 价格: 20 }
+    ];
 
     // 牌型数值表（基础兵力 / 士气，数值自建）
     let 牌型表 = {
@@ -149,14 +176,24 @@
     let 出牌次数 = 0;
     let 弃牌次数 = 0;
     let 累计战力 = 0;
-    let 目标战力 = 每关目标战力[0];
+    let 目标战力 = 0;
+    let 当前城 = 0;
     let 当前关 = 0;
+    let 已破城数 = 0;
+    let 最高战力 = 0;
     let 粮草 = 起始粮草;
     let 已招募武将们 = [];
     let 商店武将们 = [];
     let 商店开着 = false;
-    let 破城 = false;        // 三关全通 = 攻下第一城
+    let 破城 = false;        // 本城三关全通
+    let 破全城 = false;      // 八城全通 = 一统江山
     let 游戏结束 = false;
+    let 功勋 = 0;            // 对局外货币（打完一局结算，localStorage 存档）
+    let 已买升级们 = {};
+    let 本局出牌上限 = 每局出牌次数;   // 以下四个是"基础值 + 功勋升级"后的本局生效值
+    let 本局武将位 = 武将位数;
+    let 本局起始粮草 = 起始粮草;
+    let 本局刷新费 = 刷新费用;
     let 上次出牌 = null;
     let 排序方式 = "";
 
@@ -262,6 +299,7 @@
       let 牌型 = 识别牌型(出的牌);
       上次出牌 = { 出的牌: 出的牌, 牌型: 牌型, 结果: 结算战力(出的牌, 牌型) };
       累计战力 += 上次出牌.结果.战力;
+      if (上次出牌.结果.战力 > 最高战力) 最高战力 = 上次出牌.结果.战力;   // 记录本局最高单次战力（结算功勋用）
       let 打钱 = 发钱("出牌");
       显示一切();
       if (累计战力 >= 目标战力) {
@@ -296,9 +334,15 @@
       粮草 += 利息;
       开商店货架();        // 每次过关进店，货架自动上新（对应小丑牌打完盲注换新货）
       商店开着 = true;
-      if (当前关 === 每关目标战力.length - 1) {
+      if (当前关 === 关名们.length - 1) {
         破城 = true;
-        文档状态("🏰 攻下第一城！奖励 +" + 奖励 + " 粮草" + (利息 > 0 ? "，利息 +" + 利息 : "") + "，招兵买马后可以再来一局");
+        已破城数++;
+        if (当前城 === 城池表.length - 1) {
+          破全城 = true;
+          文档状态("🏰 一统江山！攻下「" + 城池表[当前城].名 + "」，奖励 +" + 奖励 + " 粮草" + (利息 > 0 ? "，利息 +" + 利息 : "") + "，整备后载入史册");
+        } else {
+          文档状态("🏰 攻下「" + 城池表[当前城].名 + "」！奖励 +" + 奖励 + " 粮草" + (利息 > 0 ? "，利息 +" + 利息 : "") + "，进军下一城");
+        }
       } else {
         文档状态("过关！+" + 奖励 + " 粮草" + (利息 > 0 ? "，利息 +" + 利息 : "") + " · 进城招兵买马，然后继续出征");
       }
@@ -307,10 +351,16 @@
 
     function 继续出征() {
       商店开着 = false;
-      if (破城) { 重新开始(); return; }
-      当前关++;
-      目标战力 = 每关目标战力[当前关];
-      出牌次数 = 每局出牌次数;
+      if (破城) {
+        if (破全城) { 结算(); return; }   // 八城全通 → 结算载入史册
+        当前城++;
+        当前关 = 0;
+        破城 = false;
+      } else {
+        当前关++;
+      }
+      目标战力 = 城池表[当前城].目标[当前关];
+      出牌次数 = 本关出牌上限();
       弃牌次数 = 每局弃牌次数;
       累计战力 = 0;
       游戏结束 = false;
@@ -318,34 +368,43 @@
       补牌();
       按当前方式排序();
       显示一切();
-      文档状态("第 " + (当前关 + 1) + " 关：「" + 关名们[当前关] + "」目标 " + 目标战力 + " 战力");
+      文档状态("第 " + (当前城 + 1) + " 城「" + 城池表[当前城].名 + "」第 " + (当前关 + 1) + " 关：「" + 关名们[当前关] + "」目标 " + 目标战力 + " 战力" + (当前关 === 2 ? " · 城主压阵，出牌 -1" : ""));
     }
 
     function 失败() {
-      游戏结束 = true;
-      文档状态("失利… 止步于「" + 关名们[当前关] + "」。带 " + 已招募武将们.length + " 员武将，下次再来");
+      结算();
     }
 
     function 重新开始() {
+      // 把功勋商店买的选项应用到本局（基础值 + 升级）
+      本局出牌上限 = 每局出牌次数 + (已买升级们["增援"] ? 1 : 0);
+      本局武将位 = 武将位数 + (已买升级们["求贤"] ? 1 : 0);
+      本局起始粮草 = 起始粮草 + (已买升级们["屯田"] ? 2 : 0);
+      本局刷新费 = Math.max(1, 刷新费用 - (已买升级们["权谋"] ? 1 : 0));
       牌堆 = 洗牌(造牌());
       手牌 = [];
       选中编号们 = [];
-      出牌次数 = 每局出牌次数;
+      出牌次数 = 本关出牌上限();
       弃牌次数 = 每局弃牌次数;
       累计战力 = 0;
+      当前城 = 0;
       当前关 = 0;
-      目标战力 = 每关目标战力[0];
-      粮草 = 起始粮草;
+      已破城数 = 0;
+      最高战力 = 0;
+      破城 = false;
+      破全城 = false;
+      目标战力 = 城池表[0].目标[0];
+      粮草 = 本局起始粮草;
       已招募武将们 = [];
       商店武将们 = [];
       商店开着 = false;
-      破城 = false;
       游戏结束 = false;
       上次出牌 = null;
+      隐藏所有遮罩();
       补牌();
       按当前方式排序();
       显示一切();
-      文档状态("第 1 关：「先锋」目标 " + 目标战力 + " 战力 · 打出好牌，攒粮草，买武将");
+      文档状态("第 1 城「涿郡」第 1 关：「先锋」目标 " + 目标战力 + " 战力 · 打出好牌，攒粮草，买武将");
     }
 
     // —— 商店 ——
@@ -358,8 +417,7 @@
     }
 
     function 刷新商店() {
-      let 费用 = 刷新费用;
-      if (将领.技能 === "仁德") 费用 = Math.max(0, 费用 - 1);   // 刘备：刷新少花 1
+      let 费用 = 刷新价();
       if (粮草 < 费用) { 提示("粮草不够刷新（" + 费用 + "）"); return; }
       粮草 -= 费用;
       开商店货架();
@@ -369,7 +427,7 @@
     function 购买武将(编号) {
       let 武将 = 商店武将们[编号];
       if (粮草 < 武将.价格) { 提示("粮草不够招募「" + 武将.名字 + "」"); return; }
-      if (已招募武将们.length >= 武将位数) { 提示("武将位已满（" + 武将位数 + " 个），想想怎么搭配"); return; }
+      if (已招募武将们.length >= 本局武将位) { 提示("武将位已满（" + 本局武将位 + " 个），想想怎么搭配"); return; }
       粮草 -= 武将.价格;
       已招募武将们.push(武将);
       商店武将们.splice(编号, 1);
@@ -479,14 +537,17 @@
     function 显示面板() {
       document.getElementById("将领").innerHTML = 将领.名字 + "（" + 将领.技能 + "）";
       document.getElementById("粮草").innerHTML = 粮草;
+      document.getElementById("城号").innerHTML = 当前城 + 1;
+      document.getElementById("城名").innerHTML = 城池表[当前城].名;
       document.getElementById("关号").innerHTML = 当前关 + 1;
       document.getElementById("关名").innerHTML = 关名们[当前关];
       document.getElementById("目标").innerHTML = 目标战力;
       document.getElementById("累计").innerHTML = 累计战力;
       document.getElementById("出牌次数").innerHTML = 出牌次数;
-      document.getElementById("出牌上限").innerHTML = 每局出牌次数;
+      document.getElementById("出牌上限").innerHTML = 本关出牌上限();
       document.getElementById("弃牌次数").innerHTML = 弃牌次数;
       document.getElementById("弃牌上限").innerHTML = 每局弃牌次数;
+      document.getElementById("功勋").innerHTML = 功勋;
 
       let 锁定 = 游戏结束 || 商店开着;
       换按钮状态("出牌钮", 锁定 || 出牌次数 <= 0);
@@ -501,7 +562,7 @@
     }
 
     function 显示武将区() {
-      let 文字 = '<div class="说明">已招募武将（' + 已招募武将们.length + '/' + 武将位数 + '）· 效果在结算时生效（先加后乘）</div>';
+      let 文字 = '<div class="说明">已招募武将（' + 已招募武将们.length + '/' + 本局武将位 + '）· 效果在结算时生效（先加后乘）</div>';
       for (let i = 0; i < 已招募武将们.length; i++) {
         let 武将 = 已招募武将们[i];
         文字 += '<div class="武将槽 ' + 武将.稀有度 + '"><div class="武将名">' + 武将.名字 + '</div>'
@@ -519,7 +580,7 @@
       let 区 = document.getElementById("商店区");
       let 文字 = '<div class="商店">'
            + '<div style="margin-bottom: 8px;"><b>招兵买马</b> · 粮草 <span id="商店粮草">' + 粮草 + '</span>'
-           + ' · <button onclick="刷新商店()">刷新货架（' + 刷新费用 + ' 粮草，刘备少花 1）</button></div>'
+           + ' · <button onclick="刷新商店()">刷新货架（' + 刷新价() + ' 粮草）</button></div>'
            + '<div class="商店牌行">';
       for (let i = 0; i < 商店武将们.length; i++) {
         let 武将 = 商店武将们[i];
@@ -528,7 +589,7 @@
              + '<div style="margin-top: 6px;"><button onclick="购买武将(' + i + ')">招募（' + 武将.价格 + ' 粮草）</button></div></div>';
       }
       文字 += '</div><div style="margin-top: 10px;"><button onclick="继续出征()">'
-           + (破城 ? "再来一局" : "整备完毕，继续出征") + '</button></div></div>';
+           + (破城 ? (破全城 ? "载入史册" : "发兵下一城") : "整备完毕，继续出征") + '</button></div></div>';
       区.innerHTML = 文字;
       遮罩.style.display = "block";
     }
@@ -543,6 +604,88 @@
       document.getElementById("信息").innerHTML = 文字;
     }
 
+    // —— 功勋 / 存档 / 整备大厅 ——
+
+    function 刷新价() {
+      return Math.max(1, 本局刷新费 - (将领.技能 === "仁德" ? 1 : 0));   // 刘备仁德 + 功勋升级都算进去
+    }
+
+    function 本关出牌上限() {
+      return 本局出牌上限 - (当前关 === 2 ? 1 : 0);   // 城主 = Boss 关，出牌 -1
+    }
+
+    function 隐藏所有遮罩() {
+      document.getElementById("商店遮罩").style.display = "none";
+      document.getElementById("结算遮罩").style.display = "none";
+      document.getElementById("大厅遮罩").style.display = "none";
+    }
+
+    function 结算() {
+      游戏结束 = true;
+      let 破城奖励 = 已破城数 * 10;
+      let 战力奖励 = Math.floor(最高战力 / 50);
+      let 全城奖励 = 破全城 ? 30 : 0;
+      let 本局功勋 = 破城奖励 + 战力奖励 + 全城奖励;
+      功勋 += 本局功勋;
+      写存档();
+      let 结果 = 破全城 ? "一统江山！八城尽归麾下" : ("止步于第 " + (当前城 + 1) + " 城「" + 城池表[当前城].名 + "」第 " + (当前关 + 1) + " 关「" + 关名们[当前关] + "」");
+      显示结算(结果, 破城奖励, 战力奖励, 全城奖励, 本局功勋);
+    }
+
+    function 显示结算(结果, 破城奖励, 战力奖励, 全城奖励, 本局功勋) {
+      let 文字 = '<div class="商店"><b>逐鹿结果</b>'
+           + '<div style="margin-top: 8px;">' + 结果 + '</div>'
+           + '<div style="margin-top: 8px;">攻下城池 <b>' + 已破城数 + '</b> 座 · 最高单次战力 <b>' + 最高战力 + '</b></div>'
+           + '<div style="margin-top: 8px;">功勋：破城 +' + 破城奖励 + ' · 战力 +' + 战力奖励 + (全城奖励 > 0 ? " · 一统江山 +" + 全城奖励 : "") + ' = <b>+' + 本局功勋 + '</b></div>'
+           + '<div>累计功勋 <b>' + 功勋 + '</b></div>'
+           + '<div style="margin-top: 12px;"><button onclick="隐藏所有遮罩(); 显示大厅()">前往整备大厅</button></div></div>';
+      document.getElementById("结算区").innerHTML = 文字;
+      document.getElementById("结算遮罩").style.display = "block";
+    }
+
+    function 显示大厅() {
+      let 文字 = '<div class="商店"><b>整备大厅</b> · 功勋 <b>' + 功勋 + '</b>'
+           + '<div style="font-size: 12px; color: #777;">功勋来自每局战果，只买选项不买数值（防数值膨胀）</div>';
+      for (let i = 0; i < 升级表.length; i++) {
+        let 项 = 升级表[i];
+        let 已买 = 已买升级们[项.键];
+        文字 += '<div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border: 1px solid #ddd; border-radius: 8px; padding: 8px;">'
+             + '<div style="flex: 1; min-width: 180px;"><b>' + 项.名 + '</b> · ' + 项.说明 + '</div>'
+             + '<button onclick="买升级(\'' + 项.键 + '\')" ' + (已买 ? "disabled" : "") + '>'
+             + (已买 ? "已购买" : "购买（" + 项.价格 + " 功勋）") + '</button></div>';
+      }
+      文字 += '<div style="margin-top: 14px;"><button onclick="开始逐鹿()">开始逐鹿</button></div></div>';
+      document.getElementById("大厅区").innerHTML = 文字;
+      document.getElementById("大厅遮罩").style.display = "block";
+    }
+
+    function 开始逐鹿() {
+      隐藏所有遮罩();
+      重新开始();
+    }
+
+    function 买升级(键) {
+      let 项 = null;
+      for (let i = 0; i < 升级表.length; i++) if (升级表[i].键 === 键) 项 = 升级表[i];
+      if (已买升级们[键]) { 提示("已经买过了"); return; }
+      if (功勋 < 项.价格) { 提示("功勋不够（还差 " + (项.价格 - 功勋) + "）"); return; }
+      功勋 -= 项.价格;
+      已买升级们[键] = true;
+      写存档();
+      显示大厅();
+    }
+
+    function 读存档() {
+      try {
+        let 存 = JSON.parse(localStorage.getItem("zhuolu-存档"));
+        if (存 && typeof 存.功勋 === "number") { 功勋 = 存.功勋; 已买升级们 = 存.已买 || {}; }
+      } catch (e) { 功勋 = 0; 已买升级们 = {}; }
+    }
+
+    function 写存档() {
+      localStorage.setItem("zhuolu-存档", JSON.stringify({ 功勋: 功勋, 已买: 已买升级们 }));
+    }
+
     // —— 牌型表（页面底部对照）——
 
     function 画牌型表() {
@@ -555,6 +698,7 @@
       document.getElementById("牌型表").innerHTML = 文字;
     }
 
+    读存档();
     画牌型表();
     开商店货架();
     重新开始();
