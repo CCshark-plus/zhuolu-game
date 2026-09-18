@@ -54,6 +54,22 @@
     .信息小节 { border-top: 1px dashed #ddd; margin-top: 8px; padding-top: 8px; }
     .词条条 { background: #fdeaea; border: 1px solid #e5b4b4; border-radius: 8px;
               padding: 6px 8px; font-size: 12px; color: #8a2f1f; margin-top: 6px; }
+    /* —— 战场（杀戮尖塔式左我右敌，占位像素小人，终版换 64px 立绘）—— */
+    .战场 { display: flex; justify-content: space-between; align-items: stretch; gap: 10px;
+            background: linear-gradient(150deg, #2a3526, #3a2c1e); border-radius: 12px;
+            padding: 10px 14px; min-height: 132px; margin: 8px 0; box-sizing: border-box; }
+    .我方 { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+    .武将战场卡 { width: 84px; text-align: center; background: rgba(255,255,255,.06);
+                  border: 1px solid rgba(232,217,184,.2); border-radius: 8px; padding: 4px;
+                  transition: transform .28s, box-shadow .28s; box-sizing: border-box; }
+    .敌卡 { width: 120px; text-align: center; background: rgba(80,30,24,.4);
+            border: 1px solid rgba(224,138,122,.4); border-radius: 8px; padding: 6px;
+            align-self: flex-end; transition: transform .18s, box-shadow .18s; box-sizing: border-box; }
+    .冲阵 { transform: translateX(-46px) translateY(-8px) scale(1.12) !important;
+            box-shadow: 0 0 16px 4px rgba(255,213,74,.8); border-color: #ffd54a !important; z-index: 5; }
+    .受击 { transform: translateX(10px) scale(.92) !important;
+            box-shadow: 0 0 14px 4px rgba(255,80,80,.7); border-color: #ff6b6b !important; }
+    .金光 { box-shadow: 0 0 22px 8px rgba(255,213,74,.65) !important; border-color: #ffd54a !important; }
   </style>
 </head>
 <body>
@@ -75,6 +91,8 @@
   </div>
   <div class="进度外"><div class="进度内" id="进度条"></div></div>
   <div class="状态" id="状态"></div>
+
+  <div class="战场" id="战场区"></div>
 
   <div class="出牌区" id="出牌区"><span class="说明">打出的牌会显示在这里</span></div>
   <div class="消耗品栏" id="消耗品栏"></div>
@@ -504,6 +522,7 @@
       }
       if (金数 > 0) 粮草 += 金数 * 3;
       显示一切();
+      触发战场动画(上次出牌.结果.武将明细, 获取激活羁绊());   // 触发技能/羁绊的武将冲阵、敌人受击
       if (累计战力 >= 目标战力) {
         过关();
       } else if (出牌次数 === 0) {
@@ -927,6 +946,7 @@
       显示信息栏();
       预览牌型();
       显示消耗品栏();
+      显示战场();
     }
 
     function 显示消耗品栏() {
@@ -1029,6 +1049,101 @@
              + '</div>';
       }
       document.getElementById("手牌区").innerHTML = 文字;
+    }
+
+    // —— 战场（杀戮尖塔式左我右敌：占位像素小人，终版换 64px 立绘）——
+
+    let 武将像素 = [   // 12×15 通用武将占位（S=阵营主色）
+      "....KKKK....", "...KYYYYK...", "...KYYYYK...", "....KKKK....",
+      ".....GG.....", "....GEEG....", ".....GG.....", "....FFFF....",
+      "...SSSSSS...", "..SSSSSSSS..", "..SSSSSSSS..", "...SS..SS...",
+      "...BB..BB...", "..BBB..BBB..", "............"
+    ];
+    let 敌像素 = [   // 12×15 黄巾占位
+      "....YYYY....", "...YYYYYY...", "....YYYY....", ".....GG.....",
+      "....GEEG....", ".....GG.....", "....FFFF....", "...TTTTTT...",
+      "..TTTTTTTT..", "..TTTTTTTT..", "...TT..TT...", "...BB..BB...",
+      "..BBB..BBB..", "............"
+    ];
+    let 阵营色表 = { 蜀: "#3f8f5a", 魏: "#3a6fb5", 吴: "#a84a3a", 群: "#7a5a9a" };
+
+    function 画像素(canvasId, sprite, 色表) {
+      let cv = document.getElementById(canvasId);
+      if (!cv) return;
+      let ctx = cv.getContext("2d"), 行 = sprite.length, 列 = sprite[0].length;
+      let px = Math.floor(cv.width / 列);
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.imageSmoothingEnabled = false;
+      for (let y = 0; y < 行; y++) for (let x = 0; x < 列; x++) {
+        let c = 色表[sprite[y][x]];
+        if (c) { ctx.fillStyle = c; ctx.fillRect(x * px, y * px, px - 1, px - 1); }
+      }
+    }
+
+    function 显示战场() {
+      let 我方 = '<div class="我方">';
+      我方 += '<div class="武将战场卡" id="场卡_刘备"><canvas id="场_刘备" width="60" height="75"></canvas>'
+            + '<div style="color:#ffd54a;font-size:12px;font-weight:600;">刘备</div><div class="说明" style="color:#b8c4d0;">将领</div></div>';
+      for (let i = 0; i < 已招募武将们.length; i++) {
+        let 武 = 已招募武将们[i];
+        我方 += '<div class="武将战场卡" id="场卡_' + 武.名字 + '"><canvas id="场_' + 武.名字 + '" width="60" height="75"></canvas>'
+              + '<div style="color:#e8d9b8;font-size:12px;font-weight:600;">' + 武.名字 + '</div>'
+              + '<div class="说明" style="color:#b8c4d0;">' + 武.阵营 + '</div></div>';
+      }
+      我方 += '</div>';
+      let 敌 = '<div class="敌卡" id="场卡_敌"><canvas id="场_敌" width="60" height="75"></canvas>'
+            + '<div style="color:#f0d0c8;font-size:12px;font-weight:600;">' + 关名们[当前关] + '</div>'
+            + '<div class="说明" style="color:#e08a7a;">目标 ' + 目标战力 + '</div>'
+            + (当前关 === 2 && 城主词条 ? '<div class="说明" style="color:#c9a227;">词条·' + 城主词条.名 + '</div>' : '')
+            + '</div>';
+      document.getElementById("战场区").innerHTML = 我方 + 敌;
+      // 绘制占位像素
+      画像素("场_刘备", 武将像素, Object.assign({ S: "#3f8f5a" }, { K: "#6b4a2b", Y: "#f5c542", G: "#f0c8a0", E: "#222", F: "#7a3b2a", B: "#4a2a1a" }));
+      for (let i = 0; i < 已招募武将们.length; i++) {
+        let 武 = 已招募武将们[i];
+        画像素("场_" + 武.名字, 武将像素, Object.assign({ S: 阵营色表[武.阵营] || "#8a8a8a" }, { K: "#6b4a2b", Y: "#f5c542", G: "#f0c8a0", E: "#222", F: "#7a3b2a", B: "#4a2a1a" }));
+      }
+      画像素("场_敌", 敌像素, { Y: "#f5c542", G: "#f0c8a0", E: "#222", F: "#7a3b2a", T: "#8a6a4a", B: "#4a2a1a" });
+    }
+
+    function 提取触发名(文本) {   // 从武将明细文本里提取武将名：("(兵力·小校)"→小校、"(关羽·同花×)"→关羽、"(羁绊×...)"→null)
+      let m = 文本.match(/\(([^)]+)\)/);
+      if (!m) return null;
+      let 内 = m[1];
+      if (内.indexOf("羁绊") >= 0) return null;
+      let 段们 = 内.split("·");
+      if (段们.length >= 2) {
+        if (段们[0] === "兵力" || 段们[0] === "士气" || 段们[0] === "乘") return 段们[1];
+        return 段们[0];
+      }
+      return null;
+    }
+
+    function 触发战场动画(明细, 羁绊们) {   // 打出可触发技能的牌型 → 对应武将冲阵、敌人受击、羁绊金光
+      let 触发的 = new Set();
+      for (let i = 0; i < (明细 || []).length; i++) {
+        let 名 = 提取触发名(明细[i].文本);
+        if (名) 触发的.add(名);
+      }
+      触发的.forEach(function(名) {
+        let 卡 = document.getElementById("场卡_" + 名);
+        if (卡) { 卡.classList.add("冲阵"); setTimeout(function() { 卡.classList.remove("冲阵"); }, 520); }
+      });
+      let 敌卡 = document.getElementById("场卡_敌");
+      if (敌卡 && 触发的.size > 0) {
+        敌卡.classList.add("受击");
+        setTimeout(function() { 敌卡.classList.remove("受击"); }, 520);
+      }
+      if (羁绊们 && 羁绊们.length > 0) {
+        for (let i = 0; i < 羁绊们.length; i++) {
+          let 成员 = 羁绊们[i].成员;
+          if (!成员) continue;
+          for (let j = 0; j < 成员.length; j++) {
+            let 卡 = document.getElementById("场卡_" + 成员[j]);
+            if (卡) { 卡.classList.add("金光"); setTimeout(function() { 卡.classList.remove("金光"); }, 950); }
+          }
+        }
+      }
     }
 
     function 显示出牌区() {
