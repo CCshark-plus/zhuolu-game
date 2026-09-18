@@ -1174,13 +1174,19 @@
     // —— 牌型情报（对应小丑牌"比赛信息"）——
 
     function 显示情报() {
-      let 文字 = '<div class="商店"><b>牌型情报</b> · 等级 = 兵书升级次数，次数 = 本局打出次数'
-           + '<table style="width:100%;"><tr><th>牌型</th><th>等级</th><th>基础兵力</th><th>士气</th><th>打出次数</th></tr>';
-      for (let 名 in 牌型表) {
+      // 参考小丑牌"牌型"页：从强到弱排序、显示 等级/牌型/兵力×士气/#打出次数；皇家同花顺没打出过时不显示（打出后出现）
+      let 顺序 = ["同花顺", "皇家同花顺", "四条", "葫芦", "同花", "顺子", "三条", "两对", "一对", "高牌"];
+      let 文字 = '<div class="商店"><b>牌型</b> <button onclick="关闭情报()">返回</button>'
+           + '<table style="width:100%;margin-top:6px;"><tr><th>等级</th><th>牌型</th><th>兵力×士气</th><th>次数</th></tr>';
+      for (let i = 0; i < 顺序.length; i++) {
+        let 名 = 顺序[i];
+        if (名 === "皇家同花顺" && !牌型次数[名]) continue;   // 未打出过 → 隐藏（同小丑牌）
         let 升 = 牌型等级[名];
-        文字 += '<tr><td>' + 名 + '</td><td>' + (升 ? 升.等级 : 0) + '</td><td>' + (牌型表[名].兵力 + (升 ? 升.兵力 : 0)) + '</td><td>' + (牌型表[名].士气 + (升 ? 升.士气 : 0)) + '</td><td>' + (牌型次数[名] || 0) + '</td></tr>';
+        let 兵力 = 牌型表[名].兵力 + (升 ? 升.兵力 : 0);
+        let 士气 = 牌型表[名].士气 + (升 ? 升.士气 : 0);
+        文字 += '<tr><td>等级' + (升 ? 升.等级 : 0) + '</td><td>' + 名 + '</td><td>' + 兵力 + '×' + 士气 + '</td><td>#' + (牌型次数[名] || 0) + '</td></tr>';
       }
-      文字 += '</table><div style="margin-top:6px;"><button onclick="关闭情报()">返回</button></div></div>';
+      文字 += '</table><div class="说明">等级=兵书升级次数 · 次数=本局打出次数</div></div>';
       document.getElementById("情报区").innerHTML = 文字;
       document.getElementById("情报遮罩").style.display = "block";
     }
@@ -1189,27 +1195,25 @@
       document.getElementById("情报遮罩").style.display = "none";
     }
 
-    // —— 军情概览（对应小丑牌"本底注三盲注目标 + Boss 效果"，进新城自动弹出）——
+    // —— 军情概览（参考小丑牌"选择你的下一个盲注"：三列卡片 = 先锋/守将/城主，进新城自动弹出）——
 
     function 显示军情() {
-      let 文字 = '<div class="商店"><b>军情 · ' + 城池表[当前城].名 + '</b>（第 ' + (当前城 + 1) + ' 城 / 共 8 城）'
-           + '<table style="width:100%;"><tr><th>关卡</th><th>目标战力</th><th>出牌</th><th>当前</th></tr>';
+      let 文字 = '<div class="商店"><b>军情 · ' + 城池表[当前城].名 + '</b>（第 ' + (当前城 + 1) + ' / 8 城）'
+           + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">';
       for (let i = 0; i < 3; i++) {
         let 目标 = 城池表[当前城].目标[i];
         let 是当前 = (i === 当前关);
-        let 上限 = 本关出牌上限() + (i === 2 ? "（城主 -1）" : "");
-        文字 += '<tr style="' + (是当前 ? 'background:#f5e6c8;' : '') + '"><td>' + 关名们[i] + '</td><td>' + 目标 + '</td><td>' + 上限 + '</td><td>' + (是当前 ? "← 现在" : "") + '</td></tr>';
+        let 卡 = '<div style="flex:1 1 170px;min-width:0;border:1px solid ' + (是当前 ? '#b8873a' : '#ddd') + ';border-radius:10px;padding:10px;box-sizing:border-box;' + (是当前 ? 'background:#f5e6c8;' : '') + '">'
+             + '<b>' + 关名们[i] + (i === 2 ? '（Boss）' : '') + '</b>'
+             + (是当前 ? ' <span class="说明">← 现在</span>' : '')
+             + '<div class="说明">至少得分</div>'
+             + '<div style="font-size:18px;font-weight:600;">' + 目标 + '</div>'
+             + '<div class="说明">出牌 ' + 本关出牌上限() + (i === 2 ? '（城主 -1）' : '') + '</div>';
+        if (i === 2 && 城主词条) 卡 += '<div class="词条条" style="margin-top:6px;">⚠ ' + 城主词条.名 + '<br>' + 城主词条.说明 + '</div>';
+        if (i === 0 && !本城急行军已用 && 本城机遇) 卡 += '<div class="说明" style="margin-top:6px;">⚡ 急行军机遇：' + 本城机遇.名 + '（' + 本城机遇.说明 + '）</div>';
+        文字 += 卡 + '</div>';
       }
-      文字 += '</table>';
-      if (城主词条) {
-        文字 += '<div class="词条条">⚠ 本城城主（Boss）词条：「' + 城主词条.名 + '」' + 城主词条.说明 + '</div>';
-      } else {
-        文字 += '<div class="说明">（本城城主词条尚未定下）</div>';
-      }
-      if (!本城急行军已用 && 当前关 === 0 && 本城机遇) {
-        文字 += '<div class="说明" style="margin-top:6px;">⚡ 可急行军：打完先锋后跳过守将，机遇「' + 本城机遇.名 + '」' + 本城机遇.说明 + '</div>';
-      }
-      文字 += '<div style="margin-top:6px;"><button onclick="关闭军情()">明白</button></div></div>';
+      文字 += '</div><div style="margin-top:8px;"><button onclick="关闭军情()">返回</button></div></div>';
       document.getElementById("军情区").innerHTML = 文字;
       document.getElementById("军情遮罩").style.display = "block";
     }
