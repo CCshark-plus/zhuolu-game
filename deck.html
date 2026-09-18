@@ -2,58 +2,110 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>三国逐鹿 · 牌组与手牌</title>
+  <title>三国逐鹿 · 出牌与结算</title>
   <style>
     body { font-family: "Microsoft YaHei", sans-serif; background: #f4f3ee; padding: 20px; }
     h1 { font-size: 22px; }
-    .牌 { width: 70px; height: 100px; background: white; border: 2px solid #333;
-          border-radius: 8px; font-size: 24px; font-weight: bold;
-          display: inline-flex; align-items: center; justify-content: center; margin: 6px;
+    .牌 { width: 62px; height: 90px; background: white; border: 2px solid #333;
+          border-radius: 8px; font-size: 22px; font-weight: bold;
+          display: inline-flex; align-items: center; justify-content: center; margin: 5px;
           cursor: pointer; user-select: none; }
-    .选中 { border: 4px solid #3b7a57; }
+    .选中 { border: 4px solid #e0a800; transform: translateY(-10px); }
+    .面板 { background: white; border-radius: 10px; padding: 10px 16px; margin: 10px 0;
+            display: inline-block; font-size: 15px; }
+    .进度外 { background: #ddd; border-radius: 6px; height: 14px; width: 100%; margin: 10px 0; }
+    .进度内 { height: 14px; width: 0%; background: #3b7a57; border-radius: 6px; }
+    .出牌区 { min-height: 120px; background: #eae7de; border-radius: 10px; padding: 12px; margin: 10px 0; }
+    .结果 { font-size: 18px; font-weight: bold; color: #8a2f1f; }
+    .状态 { font-size: 20px; font-weight: bold; margin: 8px 0; }
     button { font-size: 14px; padding: 6px 14px; border-radius: 8px; border: none;
              background: #3b7a57; color: white; cursor: pointer; margin-right: 8px; }
-    .说明 { color: #666; font-size: 14px; }
+    .禁用 { background: #aaa; cursor: not-allowed; }
+    .说明 { color: #666; font-size: 13px; }
+    table { border-collapse: collapse; font-size: 13px; }
+    td, th { border: 1px solid #ccc; padding: 3px 10px; }
   </style>
 </head>
 <body>
-  <h1>牌组与手牌 · 三国逐鹿原型</h1>
-  <p class="说明">发 8 张手牌；可以按点数或花色排序，也可以点两张牌交换位置</p>
-  <button onclick="发牌()">发牌</button>
-  <button onclick="按点数排序()">按点数排序</button>
-  <button onclick="按花色排序()">按花色排序</button>
-  <p id="信息"></p>
-  <div id="手牌"></div>
+  <h1>出牌与结算 · 三国逐鹿原型</h1>
+
+  <div class="面板">
+    目标战力 <span id="目标">400</span> ·
+    累计 <span id="累计">0</span> ·
+    出牌 <span id="出牌次数">4</span>/4 ·
+    弃牌 <span id="弃牌次数">3</span>/3
+  </div>
+  <div class="进度外"><div class="进度内" id="进度条"></div></div>
+  <div class="状态" id="状态"></div>
+
+  <div class="出牌区" id="出牌区"><span class="说明">打出的牌会显示在这里</span></div>
+  <div id="手牌区"></div>
+
+  <p>
+    <button onclick="出牌()" id="出牌钮">出牌</button>
+    <button onclick="弃牌()" id="弃牌钮">弃牌</button>
+    <button onclick="重新开始()">重新开始</button>
+    <button onclick="按点数排序()">按点数排序</button>
+    <button onclick="按花色排序()">按花色排序</button>
+  </p>
+  <p id="信息" class="说明"></p>
+
+  <details>
+    <summary>牌型表（基础兵力 × 士气）</summary>
+    <table id="牌型表"></table>
+  </details>
 
   <script>
-    // ===== 这一步：数组排序 + 手动调序 =====
+    // ===== 这一步：选牌 → 出牌 → 识别牌型 → 结算战力 =====
 
-    // 全局变量：整个页面都能用的"公共储物柜"
-    let 手牌 = [];        // 当前这手牌（数组）
-    let 选中位置 = -1;    // 点中的牌在数组里的位置，-1 = 没选中
+    // —— 全局状态（整个页面的"公共储物柜"）——
+    let 牌堆 = [];          // 整个牌堆（52 张）
+    let 手牌 = [];          // 手里的 8 张
+    let 选中编号们 = [];    // 被点中的牌，在 手牌 里的位置编号
+    let 出牌次数 = 4;       // 每轮出牌上限（小丑牌也是 4 次）
+    let 弃牌次数 = 3;       // 每轮弃牌上限
+    let 累计战力 = 0;       // 本关打出的总战力
+    let 目标战力 = 400;     // 本关目标（数值后续再调）
+    let 游戏结束 = false;   // 过关或失败后锁住操作
+    let 上次出牌 = null;    // 最近一次打出的牌 + 结果（用来显示）
 
-    // 每张牌在"比大小"时的数值：A 最大（14），2 最小（2）
+    // 点数 → 数值（A 最大 = 14）
     let 点数数值 = { "A": 14, "K": 13, "Q": 12, "J": 11, "10": 10, "9": 9, "8": 8, "7": 7, "6": 6, "5": 5, "4": 4, "3": 3, "2": 2 };
+    // 花色 → 顺序（排序用）
+    let 花色顺序 = { "♠": 0, "♥": 1, "♦": 2, "♣": 3 };
 
-    // 造一副牌（52 张）
+    // 牌型 → 基础兵力 / 士气（数值自建，后续会调）
+    let 牌型表 = {
+      "高牌":       { 兵力: 5,   士气: 1 },
+      "一对":       { 兵力: 10,  士气: 2 },
+      "两对":       { 兵力: 22,  士气: 2 },
+      "三条":       { 兵力: 30,  士气: 3 },
+      "顺子":       { 兵力: 32,  士气: 4 },
+      "同花":       { 兵力: 36,  士气: 4 },
+      "葫芦":       { 兵力: 42,  士气: 5 },
+      "四条":       { 兵力: 64,  士气: 7 },
+      "同花顺":     { 兵力: 100, 士气: 8 },
+      "皇家同花顺": { 兵力: 120, 士气: 10 }
+    };
+
+    // —— 造牌 / 洗牌 / 补牌 ——
+
     function 造牌() {
       let 花色们 = ["♠", "♥", "♦", "♣"];
       let 点数们 = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-      let 牌堆 = [];
+      let 新牌堆 = [];
       for (let 花色编号 = 0; 花色编号 < 花色们.length; 花色编号++) {
         for (let 点数编号 = 0; 点数编号 < 点数们.length; 点数编号++) {
-          let 牌 = {
+          新牌堆.push({
             花色: 花色们[花色编号],
             点数: 点数们[点数编号],
             数值: 点数数值[点数们[点数编号]]
-          };
-          牌堆.push(牌);
+          });
         }
       }
-      return 牌堆;
+      return 新牌堆;
     }
 
-    // 洗牌（把顺序打乱）
     function 洗牌(牌堆) {
       for (let i = 牌堆.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -64,71 +116,249 @@
       return 牌堆;
     }
 
-    // 发牌：洗牌后切出前 8 张（slice = 切一段出来）
-    function 发牌() {
-      手牌 = 洗牌(造牌()).slice(0, 8);
-      选中位置 = -1;
+    // 补牌：把手牌补回 8 张（shift = 从牌堆最前面拿一张）
+    function 补牌() {
+      while (手牌.length < 8 && 牌堆.length > 0) {
+        手牌.push(牌堆.shift());
+      }
+    }
+
+    // —— 开局 / 重开 ——
+
+    function 重新开始() {
+      牌堆 = 洗牌(造牌());
+      手牌 = [];
+      选中编号们 = [];
+      出牌次数 = 4;
+      弃牌次数 = 3;
+      累计战力 = 0;
+      游戏结束 = false;
+      上次出牌 = null;
+      补牌();
+      显示一切();
+    }
+
+    // —— 选牌（点一下选中/取消，最多 5 张）——
+
+    function 点牌(编号) {
+      if (游戏结束) return;
+      let 已有 = 选中编号们.indexOf(编号);   // indexOf = 找位置，找不到返回 -1
+      if (已有 >= 0) {
+        选中编号们.splice(已有, 1);          // 取消选中（splice = 从数组里删掉）
+      } else {
+        if (选中编号们.length >= 5) {
+          提示("最多同时选 5 张牌");
+          return;
+        }
+        选中编号们.push(编号);
+      }
       显示手牌();
     }
 
-    // 把数组里的手牌"画"到网页上（每次改完数组都调用它）
+    // —— 出牌 / 弃牌 ——
+
+    function 出牌() {
+      if (游戏结束) return;
+      if (选中编号们.length === 0) { 提示("先点选要出的牌"); return; }
+      if (出牌次数 <= 0) { 提示("出牌次数用完了"); return; }
+      出牌次数--;
+      let 出的牌 = 拿走选中的牌();
+      补牌();
+      let 牌型 = 识别牌型(出的牌);
+      上次出牌 = { 出的牌: 出的牌, 牌型: 牌型, 结果: 结算战力(出的牌, 牌型) };
+      累计战力 += 上次出牌.结果.战力;
+      显示一切();
+      if (累计战力 >= 目标战力) {
+        游戏结束 = true;
+        文档状态("过关！你打出了 " + 累计战力 + " 战力，攻下了这座城");
+      } else if (出牌次数 === 0) {
+        游戏结束 = true;
+        文档状态("失利：出牌次数用完，差 " + (目标战力 - 累计战力) + " 战力才达标");
+      } else {
+        文档状态("还差 " + (目标战力 - 累计战力) + " 战力");
+      }
+    }
+
+    function 弃牌() {
+      if (游戏结束) return;
+      if (选中编号们.length === 0) { 提示("先点选要弃的牌"); return; }
+      if (弃牌次数 <= 0) { 提示("弃牌次数用完了"); return; }
+      弃牌次数--;
+      拿走选中的牌();        // 弃牌不算战力，只换牌
+      补牌();
+      显示一切();
+    }
+
+    // 从手牌里删掉选中的牌，返回被删掉的牌
+    function 拿走选中的牌() {
+      let 拿走的 = [];
+      let 剩下的 = [];
+      for (let i = 0; i < 手牌.length; i++) {
+        if (选中编号们.includes(i)) {   // includes = 数组里有没有这个元素
+          拿走的.push(手牌[i]);
+        } else {
+          剩下的.push(手牌[i]);
+        }
+      }
+      手牌 = 剩下的;
+      选中编号们 = [];
+      return 拿走的;
+    }
+
+    // —— 牌型识别（本步最核心的逻辑）——
+
+    function 识别牌型(出的牌) {
+      // 1) 统计每个点数出现几次，如 {"A":2, "5":1}
+      let 点数次数 = {};
+      for (let i = 0; i < 出的牌.length; i++) {
+        let 点 = 出的牌[i].点数;
+        if (点数次数[点] === undefined) 点数次数[点] = 0;
+        点数次数[点]++;
+      }
+
+      // 2) 把次数整理成数组，大的在前，如 [2,1,1] = 一对 + 三张单牌
+      let 次数们 = [];
+      for (let 点 in 点数次数) 次数们.push(点数次数[点]);
+      次数们.sort(function (甲, 乙) { return 乙 - 甲; });
+
+      // 3) 数值列表（升序），顺子判断要用
+      let 数值们 = [];
+      for (let i = 0; i < 出的牌.length; i++) 数值们.push(出的牌[i].数值);
+      数值们.sort(function (甲, 乙) { return 甲 - 乙; });
+
+      // 4) 是不是同花（5 张同花色）
+      let 同花 = 出的牌.length === 5;
+      for (let i = 1; i < 出的牌.length; i++) {
+        if (出的牌[i].花色 !== 出的牌[0].花色) { 同花 = false; break; }
+      }
+
+      // 5) 是不是顺子（5 张连续；A 可以当 1，凑 A-2-3-4-5）
+      let 顺子 = false;
+      if (出的牌.length === 5 && 次数们.length === 5) {
+        if (数值们[4] - 数值们[0] === 4) 顺子 = true;
+        if (数值们[0] === 2 && 数值们[1] === 3 && 数值们[2] === 4 && 数值们[3] === 5 && 数值们[4] === 14) 顺子 = true;
+      }
+
+      // 6) 从最大的牌型往下判断（顺序很重要）
+      if (顺子 && 同花 && 数值们[4] === 14 && 数值们[0] === 10) return "皇家同花顺";  // 10-J-Q-K-A
+      if (顺子 && 同花) return "同花顺";
+      if (次数们[0] === 4) return "四条";
+      if (次数们[0] === 3 && 次数们[1] === 2) return "葫芦";
+      if (同花) return "同花";
+      if (顺子) return "顺子";
+      if (次数们[0] === 3) return "三条";
+      if (次数们[0] === 2 && 次数们[1] === 2) return "两对";
+      if (次数们[0] === 2) return "一对";
+      return "高牌";
+    }
+
+    // —— 战力结算：兵力 × 士气 ——
+
+    function 结算战力(出的牌, 牌型) {
+      let 基础兵力 = 牌型表[牌型].兵力;      // 牌型自带的基础值
+      let 牌面兵力 = 0;
+      for (let i = 0; i < 出的牌.length; i++) {
+        牌面兵力 += 出的牌[i].数值;          // 每张牌按点数贡献兵力
+      }
+      let 兵力 = 基础兵力 + 牌面兵力;
+      let 士气 = 牌型表[牌型].士气;
+      return { 兵力: 兵力, 士气: 士气, 战力: 兵力 * 士气, 基础兵力: 基础兵力, 牌面兵力: 牌面兵力 };
+    }
+
+    // —— 显示（每次状态变了就全部重画一遍）——
+
+    function 显示一切() {
+      显示手牌();
+      显示出牌区();
+      显示面板();
+    }
+
+    function 颜色(牌) {
+      return (牌.花色 === "♥" || 牌.花色 === "♦") ? "red" : "black";
+    }
+
     function 显示手牌() {
       let 文字 = "";
       for (let i = 0; i < 手牌.length; i++) {
-        let 颜色 = "black";
-        if (手牌[i].花色 === "♥" || 手牌[i].花色 === "♦") {
-          颜色 = "red";
-        }
         let 高亮 = "";
-        if (i === 选中位置) {
-          高亮 = "选中";   // 被点中的牌加绿色边框
-        }
-        文字 += '<div class="牌 ' + 高亮 + '" style="color:' + 颜色 + '" onclick="点牌(' + i + ')">'
+        if (选中编号们.indexOf(i) >= 0) 高亮 = "选中";
+        文字 += '<div class="牌 ' + 高亮 + '" style="color:' + 颜色(手牌[i]) + '" onclick="点牌(' + i + ')">'
              + 手牌[i].花色 + 手牌[i].点数 + '</div>';
       }
-      document.getElementById("手牌").innerHTML = 文字;
-      document.getElementById("信息").innerHTML =
-        "手牌 " + 手牌.length + " 张 · 点一张牌再点另一张，交换位置";
+      document.getElementById("手牌区").innerHTML = 文字;
     }
 
-    // 点牌：第一次点 = 选中；点另一张 = 交换位置
-    function 点牌(位置) {
-      if (选中位置 === -1) {
-        选中位置 = 位置;              // 第一次点：记住这张
-      } else if (选中位置 === 位置) {
-        选中位置 = -1;                // 又点了同一张：取消选中
-      } else {
-        let 临时 = 手牌[选中位置];    // 交换两张牌的位置
-        手牌[选中位置] = 手牌[位置];
-        手牌[位置] = 临时;
-        选中位置 = -1;
+    function 显示出牌区() {
+      let 区 = document.getElementById("出牌区");
+      if (!上次出牌) { 区.innerHTML = '<span class="说明">打出的牌会显示在这里</span>'; return; }
+      let 出的牌 = 上次出牌.出的牌;
+      let 结 = 上次出牌.结果;
+      let 文字 = '<span class="结果">「' + 上次出牌.牌型 + '」</span> ';
+      for (let i = 0; i < 出的牌.length; i++) {
+        文字 += '<div class="牌" style="color:' + 颜色(出的牌[i]) + '; cursor: default;">'
+             + 出的牌[i].花色 + 出的牌[i].点数 + '</div>';
       }
-      显示手牌();
+      文字 += '<div style="margin-top: 6px;">兵力 ' + 结.基础兵力 + ' + ' + 结.牌面兵力
+           + ' = ' + 结.兵力 + ' × 士气 ' + 结.士气 + ' = <b>' + 结.战力 + '</b></div>';
+      区.innerHTML = 文字;
     }
 
-    // 排序：数组自带 sort 方法，括号里的函数说"怎么比"
+    function 显示面板() {
+      document.getElementById("累计").innerHTML = 累计战力;
+      document.getElementById("出牌次数").innerHTML = 出牌次数;
+      document.getElementById("弃牌次数").innerHTML = 弃牌次数;
+      let 百分比 = Math.min(100, Math.floor(累计战力 / 目标战力 * 100));
+      document.getElementById("进度条").style.width = 百分比 + "%";
+      // 次数用完或游戏结束 → 按钮变灰
+      换按钮状态("出牌钮", 游戏结束 || 出牌次数 <= 0);
+      换按钮状态("弃牌钮", 游戏结束 || 弃牌次数 <= 0);
+    }
+
+    function 换按钮状态(按钮名, 禁用) {
+      document.getElementById(按钮名).className = 禁用 ? "禁用" : "";
+    }
+
+    function 文档状态(文字) {
+      let 状态 = document.getElementById("状态");
+      状态.innerHTML = 文字;
+      状态.style.color = 游戏结束 ? (累计战力 >= 目标战力 ? "#2f6b3f" : "#b23b3b") : "#555";
+    }
+
+    function 提示(文字) {
+      document.getElementById("信息").innerHTML = 文字;
+    }
+
+    // —— 排序（大在前）——
+
     function 按点数排序() {
-      手牌.sort(function (甲, 乙) {
-        return 乙.数值 - 甲.数值;     // 大的在前：A K Q J ... 2
-      });
-      选中位置 = -1;
+      手牌.sort(function (甲, 乙) { return 乙.数值 - 甲.数值; });
+      选中编号们 = [];
       显示手牌();
     }
 
-    // 按花色排序：先比花色顺序，花色相同再比点数
-    let 花色顺序 = { "♠": 0, "♥": 1, "♦": 2, "♣": 3 };
     function 按花色排序() {
       手牌.sort(function (甲, 乙) {
-        if (花色顺序[甲.花色] !== 花色顺序[乙.花色]) {
-          return 花色顺序[甲.花色] - 花色顺序[乙.花色];
-        }
-        return 乙.数值 - 甲.数值;     // 同花色内也是大的在前
+        if (花色顺序[甲.花色] !== 花色顺序[乙.花色]) return 花色顺序[甲.花色] - 花色顺序[乙.花色];
+        return 乙.数值 - 甲.数值;
       });
-      选中位置 = -1;
+      选中编号们 = [];
       显示手牌();
     }
 
-    发牌();   // 页面一打开就先发一次
+    // —— 牌型表（页面底部的对照表）——
+
+    function 画牌型表() {
+      let 文字 = "<tr><th>牌型</th><th>基础兵力</th><th>士气</th></tr>";
+      let 顺序 = ["皇家同花顺", "同花顺", "四条", "葫芦", "同花", "顺子", "三条", "两对", "一对", "高牌"];
+      for (let i = 0; i < 顺序.length; i++) {
+        let 项 = 牌型表[顺序[i]];
+        文字 += "<tr><td>" + 顺序[i] + "</td><td>" + 项.兵力 + "</td><td>" + 项.士气 + "</td></tr>";
+      }
+      document.getElementById("牌型表").innerHTML = 文字;
+    }
+
+    画牌型表();
+    重新开始();
   </script>
 </body>
 </html>
