@@ -1,0 +1,265 @@
+{
+  "cities": [
+    { "name": "涿郡", "targets": [300, 450, 600] },
+    { "name": "平原", "targets": [800, 1200, 1600] },
+    { "name": "徐州", "targets": [2000, 3000, 4000] },
+    { "name": "小沛", "targets": [5000, 7500, 10000] },
+    { "name": "汝南", "targets": [11000, 16500, 22000] },
+    { "name": "新野", "targets": [20000, 30000, 40000] },
+    { "name": "荆州", "targets": [35000, 52500, 70000] },
+    { "name": "益州", "targets": [50000, 75000, 100000] }
+  ],
+  "round_names": ["先锋", "守将", "城主"],
+  "difficulty_mult": 0.9,
+  "plays_per_round": 4,
+  "discards_per_round": 3,
+  "clear_rewards": [8, 12, 18],
+  "interest_per": 5,
+  "interest_max": 5,
+  "refresh_cost": 5,
+  "general_slots": 5,
+  "shop_slots": 2,
+  "start_money": 4,
+  "rerun_per_city": 1,
+  "steel_card_limit": 4,
+  "city_clear_medal": 10,
+  "unify_medal": 30,
+  "medal_tiers": [1000, 10000, 100000, 1000000, 10000000],
+  "medal_tier_rewards": [2, 8, 25, 60, 150],
+  "leaders": [
+    {
+      "name": "刘备", "faction": "蜀", "unlock_medal": 0,
+      "forms": [
+        { "name": "织席贩履", "skill": "仁德", "desc": "每店首次刷新免费", "unlock_medal": 0 },
+        { "name": "昭烈帝", "skill": "汉室宗亲", "desc": "剩余出牌每张折算 2 粮草；代价：过关不再结算利息", "unlock_medal": 100, "unlock_record": 3 }
+      ]
+    },
+    {
+      "name": "曹操", "faction": "魏", "unlock_medal": 30,
+      "forms": [
+        { "name": "谯郡起兵", "skill": "挟天子", "desc": "每城政令额度 +1", "unlock_medal": 0 },
+        { "name": "魏王", "skill": "魏王", "desc": "商店卡槽 +1；代价：每次刷新 +2 粮草", "unlock_medal": 100, "unlock_record": 3 }
+      ]
+    },
+    {
+      "name": "孙坚", "faction": "吴", "unlock_medal": 20,
+      "forms": [
+        { "name": "江东猛虎", "skill": "江东猛虎", "desc": "每关弃牌 +1", "unlock_medal": 0 },
+        { "name": "破虏将军", "skill": "破虏将军", "desc": "每攻下一座城额外 +15 粮草；代价：每关过关奖励 -2", "unlock_medal": 80, "unlock_record": 3 }
+      ]
+    },
+    {
+      "name": "袁绍", "faction": "群", "unlock_medal": 30,
+      "forms": [
+        { "name": "四世三公", "skill": "四世三公", "desc": "开局粮草 +12", "unlock_medal": 0 },
+        { "name": "河北霸主", "skill": "河北霸主", "desc": "武将位 +1；代价：城主关出牌 -1", "unlock_medal": 100, "unlock_record": 4 }
+      ]
+    },
+    {
+      "name": "董卓", "faction": "群", "unlock_medal": 45,
+      "forms": [
+        { "name": "西凉铁骑", "skill": "西凉铁骑", "desc": "招募武将价格 -1", "unlock_medal": 0 },
+        { "name": "相国专权", "skill": "相国专权", "desc": "每城政令额度 +1；代价：政令售价 +2、空白率翻倍", "unlock_medal": 100, "unlock_record": 4 }
+      ]
+    }
+  ],
+  "shop_weights": { "general": 20, "jike": 4, "book": 4 },
+  "rarity_weights": { "common": 70, "uncommon": 25, "rare": 5 },
+  "book_price": 3,
+  "jike_single_price": 3,
+  "pack_types": [
+    { "key": "辎重", "name": "辎重包", "weight": 4, "desc": "从包里的牌选几张，直接补进本局牌组" },
+    { "key": "兵书", "name": "兵书包", "weight": 4, "desc": "包里的兵书选一本进锦囊栏" },
+    { "key": "秘策", "name": "秘策包", "weight": 4, "desc": "包里的锦囊选一张进锦囊栏" },
+    { "key": "武将", "name": "武将包", "weight": 1.2, "desc": "包里的武将免费选员入队" },
+    { "key": "奇谋", "name": "奇谋包", "weight": 0.6, "desc": "包里的奇谋选一张进锦囊栏" }
+  ],
+  "pack_sizes": [
+    { "key": "常规", "name": "常规装", "candidates": 3, "pick": 1, "price": 4, "weight": 4, "small_candidates": 2, "small_pick": 1 },
+    { "key": "精装", "name": "精装包", "candidates": 5, "pick": 1, "price": 6, "weight": 2, "small_candidates": 4, "small_pick": 1 },
+    { "key": "巨型", "name": "巨型包", "candidates": 5, "pick": 2, "price": 8, "weight": 0.5, "small_candidates": 4, "small_pick": 2 }
+  ],
+  "blank_order_rate": 0.25,
+  "blank_order_price": 10,
+  "orders": [
+    { "key": "多员", "name": "招贤令", "desc": "商店常驻武将 +1", "price": 8 },
+    { "key": "令", "name": "军令如山", "desc": "商店刷新费 -1", "price": 8 },
+    { "key": "援", "name": "增援令", "desc": "每关出牌 +1", "price": 10 },
+    { "key": "息", "name": "屯田令", "desc": "利息上限 +1", "price": 6 },
+    { "key": "弃", "name": "骠骑营", "desc": "每关弃牌 +1", "price": 8 },
+    { "key": "栏", "name": "铁匠铺", "desc": "锦囊栏 +1 格", "price": 8 },
+    { "key": "折", "name": "市集", "desc": "商店所有商品打 8 折", "price": 10 },
+    { "key": "位", "name": "虎符", "desc": "武将位 +1", "price": 10 }
+  ],
+  "order_extra_price": 2,
+  "events": [
+    {
+      "name": "颍川书院", "intro": "残灯未熄。一名青衫书生拦住马头，说愿以腹中兵书，换一顿饱饭。",
+      "options": [
+        { "text": "延请入幕", "desc": "随机 1 员武将免费入队", "effects": [{ "key": "recruit", "value": 1 }] },
+        { "text": "借阅兵书", "desc": "随机 1 种牌型升 1 级", "effects": [{ "key": "upgrade_hand", "value": 1 }] },
+        { "text": "婉言谢过", "desc": "粮草 +6", "effects": [{ "key": "money", "value": 6 }] }
+      ]
+    },
+    {
+      "name": "乌巢粮仓", "intro": "粮囤连绵，守军已散。火光之外，是够全军吃上半月的粟米。",
+      "options": [
+        { "text": "尽取残粮", "desc": "粮草 +20，随机销毁 2 张牌", "effects": [{ "key": "money", "value": 20 }, { "key": "discard_cards", "value": 2 }] },
+        { "text": "只取一半", "desc": "粮草 +10", "effects": [{ "key": "money", "value": 10 }] },
+        { "text": "以粮换械", "desc": "随机 2 张牌永久变加成牌", "effects": [{ "key": "enhance", "value": 2, "type": "bonus" }] }
+      ]
+    },
+    {
+      "name": "古战场", "intro": "风过枯草，断戟半埋。此地百年前必是大战之所。",
+      "options": [
+        { "text": "掘取残兵", "desc": "随机 2 张牌永久变加成牌", "effects": [{ "key": "enhance", "value": 2, "type": "bonus" }] },
+        { "text": "拾骨还乡", "desc": "粮草 +12，随机销毁 1 张牌", "effects": [{ "key": "money", "value": 12 }, { "key": "discard_cards", "value": 1 }] },
+        { "text": "祭奠英魂", "desc": "随机 1 种牌型升 1 级", "effects": [{ "key": "upgrade_hand", "value": 1 }] }
+      ]
+    },
+    {
+      "name": "游方术士", "intro": "披发老者拦路献符，说能改易牌运，只是价钱要谈。",
+      "options": [
+        { "text": "求一道符", "desc": "随机 1 张锦囊进锦囊栏", "effects": [{ "key": "jike", "value": 1 }] },
+        { "text": "重金问卦", "desc": "花 8 粮草，随机 2 张锦囊进锦囊栏", "cost_money": 8, "effects": [{ "key": "money", "value": -8 }, { "key": "jike", "value": 2 }] },
+        { "text": "谢过送客", "desc": "粮草 +5", "effects": [{ "key": "money", "value": 5 }] }
+      ]
+    },
+    {
+      "name": "俘获细作", "intro": "巡骑押来一名敌营探子，怀中搜出我军布防图。",
+      "options": [
+        { "text": "严刑拷问", "desc": "粮草 +12，随机销毁 1 张牌", "effects": [{ "key": "money", "value": 12 }, { "key": "discard_cards", "value": 1 }] },
+        { "text": "策反为间", "desc": "本局每关出牌 +1", "effects": [{ "key": "play_extra", "value": 1 }] },
+        { "text": "纵之归营", "desc": "随机 1 张牌永久变倍数牌", "effects": [{ "key": "enhance", "value": 1, "type": "multiplier" }] }
+      ]
+    },
+    {
+      "name": "军匠营", "intro": "随军老匠正在熬胶修弓，抬头说：将军的甲，也该换换了。",
+      "options": [
+        { "text": "重金雇匠", "desc": "花 10 粮草：随机 3 张牌永久变加成牌", "cost_money": 10, "effects": [{ "key": "money", "value": -10 }, { "key": "enhance", "value": 3, "type": "bonus" }] },
+        { "text": "以旧换新", "desc": "随机 2 张牌永久换一种花色，粮草 +4", "effects": [{ "key": "change_suit", "value": 2 }, { "key": "money", "value": 4 }] },
+        { "text": "自带干粮", "desc": "随机 1 张牌永久变倍数牌", "effects": [{ "key": "enhance", "value": 1, "type": "multiplier" }] }
+      ]
+    }
+  ],
+  "jikes": [
+    { "key": "练兵3", "name": "练兵要略", "desc": "3 本兵书选 1，升级一种牌型", "price": 3, "effect": "book_pick_3" },
+    { "key": "练兵5", "name": "武经总要", "desc": "5 本兵书选 1，升级一种牌型", "price": 5, "effect": "book_pick_5" },
+    { "key": "练兵62", "name": "奇门遁甲", "desc": "6 本兵书选 2，升级两种牌型", "price": 8, "effect": "book_pick_6_2" },
+    { "key": "招将3", "name": "将苑", "desc": "3 员武将选 1，免费入队", "price": 4, "effect": "general_pick_3" },
+    { "key": "招将62", "name": "英雄录", "desc": "6 员武将选 2，免费入队", "price": 10, "effect": "general_pick_6_2" },
+    { "key": "粮草6", "name": "粮草调度", "desc": "粮草 +6", "price": 3, "effect": "money_6" },
+    { "key": "出牌1", "name": "击鼓进军", "desc": "本关出牌 +1", "price": 4, "effect": "play_extra_1" },
+    { "key": "减刷2", "name": "以逸待劳", "desc": "本城商店刷新费 -2", "price": 5, "effect": "refresh_discount_2" },
+    { "key": "免刷1", "name": "瞒天过海", "desc": "免费刷新商店 1 次", "price": 4, "effect": "free_refresh_1" }
+  ],
+  "boss_modifiers": [
+    { "key": "flush_block", "name": "军阵·五行", "desc": "本关同花、同花顺、皇家同花顺不成立" },
+    { "key": "straight_block", "name": "军阵·雁行", "desc": "本关顺子、同花顺、皇家同花顺不成立" },
+    { "key": "base_half", "name": "坚壁清野", "desc": "本关牌型基础兵力减半" },
+    { "key": "general_half", "name": "离间之计", "desc": "本关武将的兵力/士气加成效果减半" },
+    { "key": "growing", "name": "诱敌深入", "desc": "本关每打出一手，所需目标战力 +5%" }
+  ],
+  "rerun_rewards": [
+    { "key": "reroll_boss", "name": "阵前换将", "desc": "刷新本城城主的专属词条" },
+    { "key": "book_pack", "name": "兵书卡包", "desc": "5 本兵书选 2 本，升级两种牌型" },
+    { "key": "general_pack", "name": "武将卡包", "desc": "6 员武将选 2 员，免费入队" },
+    { "key": "free_general", "name": "求贤诏", "desc": "下次商店固定刷出一名免费武将" },
+    { "key": "extra_order", "name": "加急奏报", "desc": "本城商店的政令 +1 张" }
+  ],
+  "hand_types": {
+    "high_card": { "name": "高牌", "base_power": 5, "base_morale": 1 },
+    "pair": { "name": "一对", "base_power": 10, "base_morale": 2 },
+    "two_pair": { "name": "两对", "base_power": 20, "base_morale": 2 },
+    "three_kind": { "name": "三条", "base_power": 30, "base_morale": 3 },
+    "straight": { "name": "顺子", "base_power": 30, "base_morale": 4 },
+    "flush": { "name": "同花", "base_power": 35, "base_morale": 4 },
+    "full_house": { "name": "葫芦", "base_power": 40, "base_morale": 4 },
+    "four_kind": { "name": "四条", "base_power": 60, "base_morale": 7 },
+    "straight_flush": { "name": "同花顺", "base_power": 100, "base_morale": 8 },
+    "royal_flush": { "name": "皇家同花顺", "base_power": 100, "base_morale": 8 }
+  },
+  "book_upgrades": {
+    "high_card": { "power": 10, "morale": 1 },
+    "pair": { "power": 15, "morale": 1 },
+    "two_pair": { "power": 20, "morale": 1 },
+    "three_kind": { "power": 20, "morale": 2 },
+    "straight": { "power": 30, "morale": 3 },
+    "flush": { "power": 15, "morale": 2 },
+    "full_house": { "power": 25, "morale": 2 },
+    "four_kind": { "power": 30, "morale": 3 },
+    "straight_flush": { "power": 40, "morale": 4 },
+    "royal_flush": { "power": 50, "morale": 5 }
+  },
+  "generals": [
+    { "name": "小校", "rarity": "common", "faction": "蜀", "bond": "", "effect_type": "power_add", "effect_value": 15, "effect_cond": "", "price": 3, "desc": "兵力 +15" },
+    { "name": "弓手", "rarity": "common", "faction": "蜀", "bond": "", "effect_type": "hand_power_add", "effect_value": 25, "effect_cond": "pair", "price": 4, "desc": "打出对子时兵力 +25" },
+    { "name": "骑兵", "rarity": "common", "faction": "蜀", "bond": "", "effect_type": "hand_power_add", "effect_value": 30, "effect_cond": "straight", "price": 4, "desc": "打出顺子时兵力 +30" },
+    { "name": "书佐", "rarity": "common", "faction": "蜀", "bond": "", "effect_type": "morale_add", "effect_value": 2, "effect_cond": "", "price": 2, "desc": "士气 +2" },
+    { "name": "刀盾手", "rarity": "common", "faction": "蜀", "bond": "", "effect_type": "hand_power_add", "effect_value": 25, "effect_cond": "flush", "price": 4, "desc": "打出同花时兵力 +25" },
+    { "name": "运粮官", "rarity": "common", "faction": "蜀", "bond": "", "effect_type": "money", "effect_value": 1, "effect_cond": "play", "price": 5, "desc": "每次出牌 +1 粮草" },
+    { "name": "传令兵", "rarity": "common", "faction": "魏", "bond": "", "effect_type": "money", "effect_value": 1, "effect_cond": "discard", "price": 4, "desc": "每次弃牌 +1 粮草" },
+    { "name": "矛兵", "rarity": "common", "faction": "吴", "bond": "", "effect_type": "hand_power_add", "effect_value": 30, "effect_cond": "three_kind", "price": 4, "desc": "打出三条时兵力 +30" },
+    { "name": "张飞", "rarity": "uncommon", "faction": "蜀", "bond": "桃园结义", "effect_type": "hand_morale_mult", "effect_value": 2, "effect_cond": "straight", "price": 6, "desc": "打出顺子时士气 ×2" },
+    { "name": "黄忠", "rarity": "uncommon", "faction": "蜀", "bond": "", "effect_type": "hand_morale_mult", "effect_value": 3, "effect_cond": "flush", "price": 6, "desc": "打出同花时士气 ×3" },
+    { "name": "赵云", "rarity": "uncommon", "faction": "蜀", "bond": "", "effect_type": "card_power_add", "effect_value": 12, "effect_cond": "A", "price": 7, "desc": "每张 A 兵力 +12" },
+    { "name": "徐庶", "rarity": "uncommon", "faction": "蜀", "bond": "", "effect_type": "hand_power_add", "effect_value": 40, "effect_cond": "two_pair", "price": 6, "desc": "打出两对时兵力 +40" },
+    { "name": "马超", "rarity": "uncommon", "faction": "蜀", "bond": "", "effect_type": "card_power_add", "effect_value": 9, "effect_cond": "face", "price": 7, "desc": "每张人头牌兵力 +9" },
+    { "name": "庞统", "rarity": "uncommon", "faction": "蜀", "bond": "卧龙凤雏", "effect_type": "morale_add", "effect_value": 8, "effect_cond": "", "price": 7, "desc": "士气 +8" },
+    { "name": "夏侯惇", "rarity": "uncommon", "faction": "魏", "bond": "", "effect_type": "card_power_add", "effect_value": 8, "effect_cond": "black", "price": 6, "desc": "每张黑牌兵力 +8" },
+    { "name": "张辽", "rarity": "uncommon", "faction": "魏", "bond": "", "effect_type": "card_retrigger", "effect_value": 2, "effect_cond": "face", "price": 7, "desc": "人头牌牌面兵力重新结算 2 次" },
+    { "name": "许褚", "rarity": "uncommon", "faction": "魏", "bond": "", "effect_type": "hand_power_add", "effect_value": 60, "effect_cond": "three_kind", "price": 8, "desc": "打出三条时兵力 +60" },
+    { "name": "郭嘉", "rarity": "uncommon", "faction": "魏", "bond": "", "effect_type": "card_power_add", "effect_value": 8, "effect_cond": "red", "price": 6, "desc": "每张红牌兵力 +8" },
+    { "name": "周瑜", "rarity": "uncommon", "faction": "吴", "bond": "", "effect_type": "hand_power_add", "effect_value": 50, "effect_cond": "flush", "price": 7, "desc": "打出同花时兵力 +50" },
+    { "name": "太史慈", "rarity": "uncommon", "faction": "吴", "bond": "", "effect_type": "hand_power_add", "effect_value": 50, "effect_cond": "straight", "price": 6, "desc": "打出顺子时兵力 +50" },
+    { "name": "甘宁", "rarity": "uncommon", "faction": "吴", "bond": "", "effect_type": "hand_power_add", "effect_value": 60, "effect_cond": "full_house", "price": 7, "desc": "打出葫芦时兵力 +60" },
+    { "name": "陆逊", "rarity": "uncommon", "faction": "吴", "bond": "", "effect_type": "card_power_add", "effect_value": 10, "effect_cond": "KQ", "price": 7, "desc": "每张 K/Q 兵力 +10" },
+    { "name": "关羽", "rarity": "rare", "faction": "蜀", "bond": "桃园结义", "effect_type": "card_morale_mult", "effect_value": 2, "effect_cond": "face", "price": 9, "unlock_medal": 50, "desc": "人头牌每张士气 ×2" },
+    { "name": "诸葛亮", "rarity": "rare", "faction": "蜀", "bond": "卧龙凤雏", "effect_type": "money", "effect_value": 3, "effect_cond": "discard", "price": 8, "unlock_medal": 15, "desc": "每次弃牌 +3 粮草" },
+    { "name": "姜维", "rarity": "rare", "faction": "蜀", "bond": "", "effect_type": "morale_add", "effect_value": 9, "effect_cond": "", "price": 8, "desc": "士气 +9" },
+    { "name": "司马懿", "rarity": "rare", "faction": "魏", "bond": "", "effect_type": "hand_morale_mult", "effect_value": 3, "effect_cond": "three_kind", "price": 9, "unlock_medal": 50, "desc": "打出三条时士气 ×3" },
+    { "name": "张郃", "rarity": "rare", "faction": "魏", "bond": "", "effect_type": "hand_morale_mult", "effect_value": 4, "effect_cond": "straight_flush", "price": 8, "desc": "打出同花顺时士气 ×4" },
+    { "name": "吕蒙", "rarity": "rare", "faction": "吴", "bond": "", "effect_type": "top_retrigger", "effect_value": 3, "effect_cond": "", "price": 8, "unlock_medal": 15, "desc": "最大点数牌牌面兵力重新结算 3 次" },
+    { "name": "吕布", "rarity": "rare", "faction": "群", "bond": "", "effect_type": "power_add", "effect_value": 100, "effect_cond": "", "price": 9, "unlock_medal": 60, "desc": "兵力 +100" },
+    { "name": "貂蝉", "rarity": "rare", "faction": "群", "bond": "", "effect_type": "money", "effect_value": 2, "effect_cond": "play", "price": 7, "unlock_medal": 40, "desc": "每次出牌 +2 粮草" },
+    { "name": "枪兵", "rarity": "common", "faction": "魏", "bond": "", "effect_type": "hand_power_add", "effect_value": 25, "effect_cond": "two_pair", "price": 4, "desc": "打出两对时兵力 +25" },
+    { "name": "水军", "rarity": "common", "faction": "吴", "bond": "", "effect_type": "hand_power_add", "effect_value": 30, "effect_cond": "full_house", "price": 4, "desc": "打出葫芦时兵力 +30" },
+    { "name": "盾兵", "rarity": "common", "faction": "魏", "bond": "", "effect_type": "power_add", "effect_value": 12, "effect_cond": "", "price": 3, "desc": "兵力 +12" },
+    { "name": "孙尚香", "rarity": "uncommon", "faction": "吴", "bond": "", "effect_type": "hand_power_add", "effect_value": 50, "effect_cond": "two_pair", "price": 6, "desc": "打出两对时兵力 +50" },
+    { "name": "甄姬", "rarity": "uncommon", "faction": "魏", "bond": "", "effect_type": "card_power_add", "effect_value": 9, "effect_cond": "red", "price": 6, "desc": "每张红牌兵力 +9" },
+    { "name": "黄月英", "rarity": "uncommon", "faction": "蜀", "bond": "", "effect_type": "money", "effect_value": 2, "effect_cond": "play", "price": 6, "desc": "每次出牌 +2 粮草" },
+    { "name": "黄盖", "rarity": "uncommon", "faction": "吴", "bond": "", "effect_type": "card_retrigger", "effect_value": 2, "effect_cond": "red", "price": 7, "desc": "红牌牌面兵力重新结算 2 次" },
+    { "name": "周泰", "rarity": "uncommon", "faction": "吴", "bond": "", "effect_type": "top_retrigger", "effect_value": 2, "effect_cond": "", "price": 6, "desc": "最大点数牌牌面兵力重新结算 2 次" },
+    { "name": "华佗", "rarity": "rare", "faction": "蜀", "bond": "", "effect_type": "morale_add", "effect_value": 12, "effect_cond": "", "price": 8, "unlock_medal": 5, "desc": "士气 +12" },
+    { "name": "大乔", "rarity": "rare", "faction": "吴", "bond": "", "effect_type": "money", "effect_value": 3, "effect_cond": "play", "price": 8, "unlock_medal": 10, "desc": "每次出牌 +3 粮草" },
+    { "name": "祝融", "rarity": "rare", "faction": "群", "bond": "", "effect_type": "card_morale_mult", "effect_value": 1.3, "effect_cond": "black", "price": 9, "unlock_medal": 50, "desc": "黑牌每张士气 ×1.3" },
+    { "name": "董卓", "rarity": "rare", "faction": "群", "bond": "", "effect_type": "power_add", "effect_value": 120, "effect_cond": "", "price": 9, "unlock_medal": 60, "desc": "兵力 +120" },
+    { "name": "鲁肃", "rarity": "uncommon", "faction": "吴", "bond": "江东都督", "effect_type": "morale_add", "effect_value": 6, "effect_cond": "", "price": 6, "desc": "士气 +6" },
+    { "name": "典韦", "rarity": "rare", "faction": "魏", "bond": "虎卫铁壁", "effect_type": "power_add", "effect_value": 90, "effect_cond": "", "price": 9, "unlock_medal": 10, "desc": "兵力 +90" }
+  ],
+  "bonds": [
+    { "name": "桃园结义", "members": ["刘备", "关羽", "张飞"], "effect": { "power_add": 50, "morale_mult": 2 }, "desc": "刘关张齐聚 · 兵力+50、士气×2" },
+    { "name": "卧龙凤雏", "members": ["诸葛亮", "庞统"], "effect": { "morale_mult": 2.5 }, "desc": "卧龙凤雏 · 士气×2.5" },
+    { "name": "五虎上将", "members": ["关羽", "张飞", "赵云", "马超", "黄忠"], "effect": { "power_add": 100, "morale_mult": 2 }, "desc": "五虎齐聚 · 兵力+100、士气×2" },
+    { "name": "江东都督", "members": ["周瑜", "鲁肃", "吕蒙", "陆逊"], "effect": { "morale_add": 8, "play_extra": 1 }, "desc": "四代都督 · 士气+8、每关出牌+1" },
+    { "name": "连环计", "members": ["吕布", "貂蝉"], "effect": { "morale_mult": 2 }, "desc": "吕布貂蝉 · 士气×2" },
+    { "name": "龙凤呈祥", "members": ["刘备", "孙尚香"], "effect": { "power_add": 40, "morale_add": 5 }, "desc": "刘备孙尚香 · 兵力+40、士气+5" },
+    { "name": "虎卫铁壁", "members": ["许褚", "典韦"], "effect": { "power_add": 75 }, "desc": "虎痴恶来 · 兵力+75" },
+    { "name": "蜀之魂", "faction": "蜀", "tiers": [
+      { "need": 3, "effect": { "morale_add": 6 }, "desc": "三名蜀将同袍 · 士气+6" },
+      { "need": 5, "effect": { "morale_add": 18, "power_add": 50 }, "desc": "五名蜀将同袍 · 士气+18、兵力+50" }
+    ]},
+    { "name": "魏之魂", "faction": "魏", "tiers": [
+      { "need": 3, "effect": { "power_add": 90 }, "desc": "三名魏将同袍 · 兵力+90" },
+      { "need": 5, "effect": { "power_add": 220, "morale_add": 2 }, "desc": "五名魏将同袍 · 兵力+220、士气+2" }
+    ]},
+    { "name": "吴之魂", "faction": "吴", "tiers": [
+      { "need": 3, "effect": { "morale_add": 5 }, "desc": "三名吴将同袍 · 士气+5" },
+      { "need": 5, "effect": { "morale_add": 15, "power_add": 50 }, "desc": "五名吴将同袍 · 士气+15、兵力+50" }
+    ]},
+    { "name": "群雄逐鹿", "faction": "群", "tiers": [
+      { "need": 2, "effect": { "power_add": 45 }, "desc": "两员群雄 · 兵力+45" },
+      { "need": 4, "effect": { "power_add": 120, "morale_add": 6 }, "desc": "四员群雄 · 兵力+120、士气+6" }
+    ]}
+  ]
+}
